@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stablecoin Dashboard</title>
+  <meta name="color-scheme" content="dark" />
+  <link rel="preconnect" href="https://stablecoins.llama.fi">
+  <link rel="preconnect" href="https://api.llama.fi">
+  <link rel="preconnect" href="https://yields.llama.fi">
+  <link rel="preconnect" href="https://coins.llama.fi">
+  <link rel="stylesheet" href="styles.css?v=9" />
+  <!-- Charts: lightweight CDN (optional). You can remove if you don't want charts yet. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" defer></script>
+  <script src="ecosystem-data.js" defer></script>
+      <script src="app.js?v=39" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">Stablecoin Dashboard</div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-target="overview">Overview</button>
+      <button class="tab" data-target="yield">Yield</button>
+      <button class="tab" data-target="plasma">Plasma Ecosystem</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- OVERVIEW TAB -->
+    <section id="overview" class="tab-content">
+      <!-- KPI cards -->
+      <div class="kpis">
+        <div class="card kpi"><div class="kpi-label">Total Market Cap</div><div id="kpiTotalMcap" class="kpi-value">—</div></div>
+        <div class="card kpi"><div class="kpi-label">Top Coin Dominance</div><div id="kpiTopDominance" class="kpi-value">—</div></div>
+        <div class="card kpi"><div class="kpi-label"># Stablecoins</div><div id="kpiCountCoins" class="kpi-value">—</div></div>
+        <div class="card kpi"><div class="kpi-label"># Chains &gt; $100M</div><div id="kpiBigChains" class="kpi-value">—</div></div>
+      </div>
+
+      <!-- Charts row (optional placeholders) -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Market Share (Current)</div>
+          <canvas id="chartDonut"></canvas>
+          <div class="muted small">Top 5 stablecoins + Others</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Last 90 Days</div>
+          <canvas id="chartStacked"></canvas>
+          <div class="muted small">Daily granularity</div>
+        </div>
+      </div>
+
+      <!-- Top Stablecoins List -->
+      <div class="card">
+        <div class="card-title row-between">
+          <span>Top Stablecoins by Market Cap</span>
+          <div class="controls">
+    
+          </div>
+        </div>
+        <div id="stablecoinList" class="table-list">
+          <!-- Header row -->
+          <div class="row header">
+            <div><strong>Stablecoin</strong></div>
+            <div><strong>Market Cap</strong></div>
+            <div><strong>Top Chains</strong></div>
+          </div>
+          <!-- Data rows injected here -->
+        </div>
+        <div class="row-center">
+          <button id="loadMore" class="btn">Load more</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- YIELD TAB -->
+    <section id="yield" class="tab-content hidden">
+      <div class="card coming-soon">
+        <h2 class="coming-soon-title">Coming Soon</h2>
+        <p class="coming-soon-text">We're still Cooking our dashboard to help you find the best yield for your Stablecoin.</p>
+      </div>
+    </section>
+
+    <!-- PLASMA TAB -->
+    <section id="plasma" class="tab-content hidden">
+      <div class="plasma-container">
+        <!-- Header -->
+        <div class="plasma-header">
+          <h1 class="plasma-title">Plasma Ecosystem Partners</h1>
+          <p class="plasma-subtitle">Discover the growing ecosystem of 43+ partners building on Plasma</p>
+        </div>
+        
+        <!-- Search and Filters -->
+        <div class="plasma-controls">
+          <div class="search-container">
+            <input type="text" id="plasmaSearch" placeholder="🔍 Search partners..." class="plasma-search" />
+          </div>
+          
+          <div class="filter-container">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="stablecoins">Stablecoins</button>
+            <button class="filter-btn" data-category="yield">Yield</button>
+            <button class="filter-btn" data-category="dex">DEX</button>
+            <button class="filter-btn" data-category="bridge">Bridge</button>
+            <button class="filter-btn" data-category="payments">Payments</button>
+            <button class="filter-btn" data-category="rwa">RWA</button>
+            <button class="filter-btn" data-category="infrastructure">Infrastructure</button>
+            <button class="filter-btn" data-category="analytics">Analytics</button>
+          </div>
+        </div>
+        
+        <!-- Partners Grid -->
+        <div id="plasmaGrid" class="plasma-grid">
+          <!-- Partners will be loaded here dynamically -->
+        </div>
+        
+        <!-- No Results Message -->
+        <div id="plasmaNoResults" class="plasma-no-results hidden">
+          <h3>No partners found</h3>
+          <p>Try adjusting your search or filters</p>
+          <button onclick="clearPlasmaFilters()" class="btn">Clear All Filters</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chain Modal -->
+  <div id="chainModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Chains for <span id="modalSymbol"></span></h3>
+        <span class="modal-close" onclick="closeChainModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="modalChains" class="chain-list">
+          <!-- Chains will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
