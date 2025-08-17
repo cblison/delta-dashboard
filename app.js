@@ -263,7 +263,7 @@ async function renderStackedChart(list) {
   const canvas = document.getElementById('chartStacked').getContext('2d');
   
   try {
-    console.log('Fetching total stablecoin market cap history from DeFiLlama...');
+    
     
     // Use the /stablecoincharts/all endpoint for total market cap over time
     const { data: response } = await fetchWithCache(
@@ -277,8 +277,7 @@ async function renderStackedChart(list) {
       return;
     }
     
-    console.log(`✓ Got ${response.length} historical data points`);
-    console.log('Sample data:', response.slice(0, 3));
+    
     
     // Filter to last 90 days and parse data
     const now = Date.now();
@@ -316,12 +315,7 @@ async function renderStackedChart(list) {
       return;
     }
     
-    console.log(`✓ Processed ${chartData.length} valid data points in 90-day range`);
-    console.log('Date range:', 
-      new Date(chartData[0].x).toLocaleDateString(), 
-      'to', 
-      new Date(chartData[chartData.length - 1].x).toLocaleDateString()
-    );
+    
     
     // Create the chart
     window.stackedChart = new Chart(canvas, {
@@ -401,7 +395,7 @@ async function renderStackedChart(list) {
       }
     });
 
-    console.log('✓ Total stablecoin market cap chart rendered successfully');
+    
 
   } catch (error) {
     console.error('Error rendering chart:', error);
@@ -667,7 +661,7 @@ async function loadEcosystemData() {
     // Try to load from ecosystem-data.js file
     if (typeof window.ecosystemPartners !== 'undefined') {
       ecosystemData = window.ecosystemPartners;
-      console.log(`✓ Loaded ${ecosystemData.length} ecosystem partners`);
+      
     } else {
       console.warn('Ecosystem data not found, using fallback data');
       // Fallback data if file not found
@@ -815,7 +809,7 @@ function renderPartners() {
     `;
   }).join('');
   
-  console.log(`✓ Rendered ${filteredData.length} partners`);
+  
 }
 
 // Add this new function to create properly encoded fallback SVGs
