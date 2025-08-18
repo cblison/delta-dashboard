@@ -528,12 +528,17 @@ async function rebuildStablecoinList(reset) {
 // Yield Tab MVP
 // -----------------------------
 let yieldInitDone = false;
+let yieldSort = { key: 'tvl', dir: 'desc' }; // default sort: TVL desc
 async function initYield() {
   if (yieldInitDone) return;
   yieldInitDone = true;
 
   // Populate chain filter from pools data later
   const chainSelect = document.getElementById('yfChain');
+  const yieldRowsEl = document.getElementById('yieldRows');
+  if (yieldRowsEl) {
+    yieldRowsEl.innerHTML = `<div class="trow"><div class="muted">Loading...</div></div>`;
+  }
 
   // Fetch pools (snapshot) with caching 2–5 min
   let payload;
@@ -546,32 +551,222 @@ async function initYield() {
     return;
   }
 
-  // Build naive stablecoin-only filter using symbol heuristic (MVP).
-  const STABLES = ['USDT','USDC','DAI','TUSD','FDUSD','USDP','FRAX','LUSD','PYUSD','USDD','GUSD'];
-  const rows = payload.filter(p => {
-    const sym = (p.symbol || p.pool || '').toUpperCase();
-    // Accept pure stable or stable-only combos (e.g., USDC/USDT/DAI)
-    if (sym.includes('-') || sym.includes('/')) {
-      // split and ensure every token appears stable-ish
-      const parts = sym.split(/[\/\-]/g).map(s=>s.trim());
-      return parts.every(tok => STABLES.includes(tok));
-    }
-    return STABLES.includes(sym);
+  // Stable-related pools (include any pool with at least one stable leg)
+  const STABLES = new Set([
+    'USDT','USDC','DAI','TUSD','FDUSD','USDP','FRAX','LUSD','PYUSD','USDD','GUSD',
+    'CRVUSD','SUSD','GHO','MIM','DOLA','USD0','USDM','EUSD','MKUSD','USDC.E','USDBC',
+    'USDE','SUSDE','RLUSD','USDS','USD1'
+  ]);
+  function tokenizeSymbol(sym){
+    return String(sym || '').toUpperCase().split(/[^A-Z0-9]+/g).filter(Boolean);
+  }
+  function isExcludedPoolEntry(entry) {
+    const text = `${entry.poolMeta || ''} ${entry.symbol || ''} ${entry.pool || ''}`.toUpperCase();
+    // Exclude Pendle PT tokens and dated PT series
+    if (text.includes('PT-')) return true;
+    if (text.includes('PT-SUSDE') || text.includes('PT-USDE')) return true;
+    if (text.includes('25SEP2025') || text.includes('25SEPT2025')) return true;
+    // Exclude specific composite pairs and trailing-plus variants not on the stable list
+    if (text.includes('AETHUSDE-AETHSUSDE')) return true;
+    if (text.includes('USUALUSDC+')) return true;
+    return false;
+  }
+
+  // Pretty-print project names from slug/ids
+  const PROJECT_NAME_MAP = {
+    'aave-v3': 'Aave V3',
+    'curve-dex': 'Curve DEX',
+    'morpho-blue': 'Morpho Blue',
+    'justlend': 'JustLend',
+    'yearn-finance': 'Yearn Finance',
+    'arrakis-v1': 'Arrakis V1',
+    'uniswap-v3': 'Uniswap V3',
+    'balancer-v2': 'Balancer V2',
+    'convex-finance': 'Convex Finance',
+    'frax': 'Frax',
+    'sky-lending': 'Sky Lending',
+    'sparklend': 'SparkLend',
+    'ethena-usde': 'Ethena USDe',
+    'ethena': 'Ethena',
+    'maple': 'Maple',
+    'usual': 'Usual',
+    'pendle': 'Pendle',
+    'fluid-lending': 'Fluid Lending',
+    'kamino-lend': 'Kamino Lend',
+    'venus-core-pool': 'Venus Core Pool',
+    'fx-protocol': 'fx Protocol',
+    'reservoir-protocol': 'Reservoir Protocol',
+    'yieldfi': 'YieldFi'
+  };
+  function titleCaseProject(str) {
+    const words = String(str || '').split(/[^a-zA-Z0-9]+/g).filter(Boolean);
+    const cased = words.map(w => {
+      const up = w.toUpperCase();
+      if (/(V\d+|DEX|DAO)/.test(up)) return up;
+      if (up === 'USDE') return 'USDe';
+      if (up === 'SUSDE') return 'SUSDE';
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    }).join(' ');
+    return cased || str;
+  }
+  function formatProjectName(project) {
+    const key = String(project || '').toLowerCase();
+    return PROJECT_NAME_MAP[key] || titleCaseProject(project);
+  }
+
+  // Known project websites (prefer external site over internal pages)
+  const PROJECT_WEBSITE_MAP = {
+    'ethena-usde': 'https://www.ethena.fi/',
+    'ethena': 'https://www.ethena.fi/',
+    'maple': 'https://app.maple.finance/earn',
+    'sky-lending': 'https://sky.money/',
+    'aave-v3': 'https://app.aave.com/',
+    'morpho-blue': 'https://app.morpho.org/',
+    'usual': 'https://app.usual.money/',
+    'justlend': 'https://justlend.just.network/',
+    'yearn-finance': 'https://yearn.fi/',
+    'arrakis-v1': 'https://www.arrakis.finance/',
+    'uniswap-v3': 'https://app.uniswap.org/',
+    'balancer-v2': 'https://app.balancer.fi/',
+    'convex-finance': 'https://www.convexfinance.com/',
+    'frax': 'https://frax.com/',
+    'sparklend': 'https://app.spark.fi/',
+    'fluid-lending': 'https://fluid.io/',
+    'kamino-lend': 'https://app.kamino.finance/',
+    'venus-core-pool': 'https://app.venus.io/'
+  };
+  function getProjectWebsite(project) {
+    const key = String(project || '').toLowerCase();
+    return PROJECT_WEBSITE_MAP[key] || null;
+  }
+  let rows = payload.filter(p => {
+    const symUp = String(p.symbol || p.pool || '').toUpperCase();
+    const tokens = tokenizeSymbol(symUp);
+    if (tokens.length === 0) return false;
+    const tokenHit = tokens.some(t => STABLES.has(t));
+    const substringHit = Array.from(STABLES).some(s => symUp.includes(s));
+    return tokenHit || substringHit;
   });
+  // Remove explicitly excluded pools (e.g., PT-SUSDE-25SEP2025 variants)
+  rows = rows.filter(r => !isExcludedPoolEntry(r));
+
+  // Try to align exactly with DeFiLlama rankings by ingesting their CSV (best effort)
+  try {
+    // Lightweight CSV parser handling quotes
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i+1] === '"') { cur += '"'; i++; }
+            else { inQuotes = false; }
+          } else { cur += ch; }
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ',') { row.push(cur); cur = ''; }
+          else if (ch === '\n' || ch === '\r') {
+            if (cur.length || row.length) { row.push(cur); rows.push(row); row = []; cur = ''; }
+          } else { cur += ch; }
+        }
+      }
+      if (cur.length || row.length) { row.push(cur); rows.push(row); }
+      return rows;
+    }
+    const csvRes = await fetch('https://datasets.llama.fi/yields/yield_rankings.csv', { cache: 'no-store' });
+    if (csvRes.ok) {
+      const csvText = await csvRes.text();
+      const table = parseCSV(csvText);
+      if (table && table.length > 1) {
+        const header = table[0].map(h => h.trim().toLowerCase());
+        const idx = (name) => header.indexOf(name);
+        const idxPool = idx('pool') !== -1 ? idx('pool') : idx('pool id');
+        const idxProject = idx('project');
+        const idxChain = idx('chain');
+        const idxSymbol = idx('symbol');
+        const idxTvl = idx('tvl') !== -1 ? idx('tvl') : (idx('tvlusd') !== -1 ? idx('tvlusd') : -1);
+        const idxApy = idx('apy');
+        const idxApyBase = idx('apy (base)') !== -1 ? idx('apy (base)') : idx('apybase');
+        const idxApyReward = idx('apy (reward)') !== -1 ? idx('apy (reward)') : idx('apyreward');
+        let csvRows = table.slice(1).map(cols => ({
+          pool: cols[idxPool] || '',
+          project: cols[idxProject] || '',
+          chain: cols[idxChain] || '',
+          symbol: cols[idxSymbol] || '',
+          tvlUsd: Number((cols[idxTvl] || '').toString().replace(/[$,]/g,'')) || 0,
+          apy: Number(cols[idxApy] || 0),
+          apyBase: Number(cols[idxApyBase] || 0),
+          apyReward: Number(cols[idxApyReward] || 0),
+        })).filter(r => {
+          const symUp = String(r.symbol || r.pool || '').toUpperCase();
+          const tokens = tokenizeSymbol(symUp);
+          if (tokens.length === 0) return false;
+          const tokenHit = tokens.some(t => STABLES.has(t));
+          const substringHit = Array.from(STABLES).some(s => symUp.includes(s));
+          return tokenHit || substringHit;
+        });
+        // Remove excluded entries from CSV too
+        csvRows = csvRows.filter(r => !isExcludedPoolEntry(r));
+        if (csvRows.length > 0) {
+          rows = csvRows;
+        }
+      }
+    }
+  } catch {}
 
   // Populate chain filter options
-  const chains = Array.from(new Set(rows.map(r => r.chain).filter(Boolean))).sort();
-  chains.forEach(c => {
-    const opt = document.createElement('option'); opt.textContent = c; opt.value = c;
-    chainSelect.appendChild(opt);
+  if (chainSelect) {
+    const chains = Array.from(new Set(rows.map(r => r.chain).filter(Boolean))).sort();
+    chains.forEach(c => {
+      const opt = document.createElement('option'); opt.textContent = c; opt.value = c;
+      chainSelect.appendChild(opt);
+    });
+  }
+
+  // Populate project filter options
+  const projectSelect = document.getElementById('yfProject');
+  if (projectSelect) {
+    const projects = Array.from(new Set(rows.map(r => r.project).filter(Boolean))).sort();
+    projects.forEach(p => {
+      const opt = document.createElement('option'); opt.textContent = formatProjectName(p); opt.value = p;
+      projectSelect.appendChild(opt);
+    });
+  }
+
+  // Header click sorting
+  const sortBindings = [
+    ['yfSortApyBase',   'apyBase'],
+    ['yfSortApyReward', 'apyReward'],
+    ['yfSortApyTotal',  'apyTotal'],
+    ['yfSortTvl',       'tvl'],
+  ];
+  sortBindings.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const toggle = () => {
+      if (yieldSort.key === key) {
+        yieldSort.dir = (yieldSort.dir === 'asc') ? 'desc' : 'asc';
+      } else {
+        yieldSort.key = key;
+        yieldSort.dir = 'desc';
+      }
+      render();
+    };
+    el.addEventListener('click', toggle);
+    el.addEventListener('keypress', (e)=>{ if(e.key==='Enter') toggle(); });
   });
 
   // Render function with current filters
   const render = () => {
+    const search = (document.getElementById('yfSearch')?.value || '').toLowerCase();
     const asset = document.getElementById('yfAsset').value;
     const chain = document.getElementById('yfChain').value;
+    const project = document.getElementById('yfProject')?.value || 'ALL';
     const minTvl = Number(document.getElementById('yfMinTvl').value || 0);
-    const onPeg = document.getElementById('yfOnPeg').checked;
+    const usdtOnly = !!document.getElementById('yfUsdtOnly')?.checked;
 
     const filtered = rows.filter(r => {
       // asset match
@@ -580,46 +775,111 @@ async function initYield() {
         (sym === asset || sym.split(/[\/\-]/g).every(tok => tok === asset) || sym.includes(asset));
       // chain match
       const chainOk = (chain === 'ALL') ? true : ((r.chain || '').toLowerCase() === chain.toLowerCase());
+      // project match
+      const projectOk = (project === 'ALL') ? true : ((r.project || '').toLowerCase() === project.toLowerCase());
       // tvl
-      const tvl = Number(r.tvlUsd || r.totalSupplyUsd || 0);
+      const tvl = Number(r.tvlUsd ?? r.totalSupplyUsd ?? 0);
       const tvlOk = tvl >= minTvl;
-      // peg badge placeholder (assume on-peg; you can wire coins API later)
-      const pegOk = onPeg ? true : true;
-      return assetOk && chainOk && tvlOk && pegOk;
+      // USDT-only filter
+      const symAll = String(r.symbol || r.pool || '').toUpperCase();
+      const tokens = tokenizeSymbol(symAll);
+      const usdtOk = usdtOnly ? (tokens.includes('USDT') || symAll.includes('USDT')) : true;
+      // search
+      const hay = `${r.poolMeta || ''} ${r.pool || ''} ${r.project || ''} ${r.chain || ''} ${r.symbol || ''}`.toLowerCase();
+      const searchOk = !search || hay.includes(search);
+      return assetOk && chainOk && projectOk && tvlOk && usdtOk && searchOk;
     });
 
-    // Sort: APY total desc, then TVL desc
+    // Sort according to header selection
     filtered.sort((a,b)=> {
-      const aApy = Number(a.apy ?? ((a.apyBase||0)+(a.apyReward||0)));
-      const bApy = Number(b.apy ?? ((b.apyBase||0)+(b.apyReward||0)));
-      if (bApy !== aApy) return bApy - aApy;
-      const aT = Number(a.tvlUsd || a.totalSupplyUsd || 0);
-      const bT = Number(b.tvlUsd || b.totalSupplyUsd || 0);
-      return bT - aT;
+      const dir = (yieldSort.dir === 'asc') ? 1 : -1;
+
+      const tvlA = Number(a.tvlUsd ?? a.totalSupplyUsd ?? 0);
+      const tvlB = Number(b.tvlUsd ?? b.totalSupplyUsd ?? 0);
+      const apyBaseA = Number(a.apyBase || 0),   apyBaseB = Number(b.apyBase || 0);
+      const apyRewardA = Number(a.apyReward || 0), apyRewardB = Number(b.apyReward || 0);
+      const apyTotalA = Number(a.apy ?? (apyBaseA + apyRewardA));
+      const apyTotalB = Number(b.apy ?? (apyBaseB + apyRewardB));
+
+      let cmp = 0;
+      switch (yieldSort.key) {
+        case 'apyBase':   cmp = (apyBaseA - apyBaseB); break;
+        case 'apyReward': cmp = (apyRewardA - apyRewardB); break;
+        case 'apyTotal':  cmp = (apyTotalA - apyTotalB); break;
+        case 'tvl':
+        default:          cmp = (tvlA - tvlB); break;
+      }
+      if (cmp !== 0) return cmp * dir;
+
+      // tiebreakers
+      if (tvlB !== tvlA) return tvlB - tvlA;
+      return apyTotalB - apyTotalA;
     });
 
     const tbody = document.getElementById('yieldRows');
     tbody.innerHTML = '';
-    const top = filtered.slice(0, 200); // cap displayed rows
+    // Ensure we display up to 100 rows: if exclusions reduce count, backfill with next rows by TVL
+    let top = filtered.slice(0, 100);
+    if (top.length < 100) {
+      const have = new Set(top.map(r => r.pool || `${r.project}|${r.symbol}|${r.chain}`));
+      // Build extras from all rows that passed base stable filter (rows), excluding already taken and excluded entries
+      const extras = rows.filter(r => !have.has(r.pool || `${r.project}|${r.symbol}|${r.chain}`) && !isExcludedPoolEntry(r));
+      // Sort extras by current sort (default TVL desc)
+      extras.sort((a,b)=>{
+        const dir = (yieldSort.dir === 'asc') ? 1 : -1;
+        const tvlA = Number(a.tvlUsd ?? a.totalSupplyUsd ?? 0);
+        const tvlB = Number(b.tvlUsd ?? b.totalSupplyUsd ?? 0);
+        const apyBaseA = Number(a.apyBase || 0), apyBaseB = Number(b.apyBase || 0);
+        const apyRewardA = Number(a.apyReward || 0), apyRewardB = Number(b.apyReward || 0);
+        const apyTotalA = Number(a.apy ?? (apyBaseA + apyRewardA));
+        const apyTotalB = Number(b.apy ?? (apyBaseB + apyRewardB));
+        let cmp = 0;
+        switch (yieldSort.key) {
+          case 'apyBase':   cmp = (apyBaseA - apyBaseB); break;
+          case 'apyReward': cmp = (apyRewardA - apyRewardB); break;
+          case 'apyTotal':  cmp = (apyTotalA - apyTotalB); break;
+          case 'tvl':
+          default:          cmp = (tvlA - tvlB); break;
+        }
+        if (cmp !== 0) return cmp * dir;
+        if (tvlB !== tvlA) return tvlB - tvlA;
+        return apyTotalB - apyTotalA;
+      });
+      for (const r of extras) {
+        if (top.length >= 100) break;
+        top.push(r);
+      }
+    }
+
+    // Update header active classes
+    sortBindings.forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('active','asc','desc');
+      if (yieldSort.key === key) {
+        el.classList.add('active');
+        el.classList.add(yieldSort.dir === 'asc' ? 'asc' : 'desc');
+      }
+    });
     top.forEach(r => {
       const apyBase = Number(r.apyBase || 0);
       const apyReward = Number(r.apyReward || 0);
       const apyTotal = Number(r.apy ?? (apyBase + apyReward));
-      const tvl = Number(r.tvlUsd || r.totalSupplyUsd || 0);
-      const updated = r.timestamp ? new Date(r.timestamp*1000) : (r.updatedAt ? new Date(r.updatedAt) : new Date());
+      const tvl = Number(r.tvlUsd ?? r.totalSupplyUsd ?? 0);
       const row = document.createElement('div');
       row.className = 'trow';
+      const symbolText = (r.symbol || '—');
+      const metaText = r.poolMeta ? ` ${r.poolMeta}` : '';
+      const projectLink = getProjectWebsite(r.project);
       row.innerHTML = `
-        <div>${r.poolMeta ? `<strong>${r.poolMeta}</strong> ` : ''}<span class="muted small">${r.pool || '—'}</span></div>
-        <div>${r.project || '—'}</div>
+        <div>${projectLink ? `<a href="${projectLink}" target="_blank" rel="noopener noreferrer"><strong>${symbolText}</strong></a>` : `<strong>${symbolText}</strong>`}<span class="muted small">${metaText}</span></div>
+        <div>${formatProjectName(r.project) || '—'}</div>
         <div>${r.chain || '—'}</div>
         <div>${r.symbol || '—'}</div>
         <div>${fmtPct(apyBase)}</div>
         <div>${fmtPct(apyReward)}</div>
         <div><strong>${fmtPct(apyTotal)}</strong></div>
         <div>${formatUSD(tvl)}</div>
-        <div><span class="badge onpeg">On‑peg</span></div>
-        <div class="muted small">${fmtTime(updated.getTime())}</div>
       `;
       tbody.appendChild(row);
     });
@@ -630,12 +890,16 @@ async function initYield() {
   };
 
   // Hook filters
-  ['yfAsset','yfChain','yfMinTvl','yfOnPeg'].forEach(id => {
+  ['yfAsset','yfChain','yfProject','yfMinTvl','yfUsdtOnly'].forEach(id => {
     const el = document.getElementById(id);
-    el.addEventListener('change', render);
+    if (el) el.addEventListener('change', render);
   });
+  const searchEl = document.getElementById('yfSearch');
+  if (searchEl) searchEl.addEventListener('input', render);
 
   render();
+
+  
 }
 
 // ===============================
@@ -646,6 +910,16 @@ let ecosystemData = [];
 let filteredData = [];
 let currentCategory = 'all';
 let currentSearch = '';
+
+// Exclude these auto-added yield projects from Plasma ecosystem
+const PLASMA_EXCLUDE = new Set([
+  'aave-v3','ethena-usde','merkl','morpho-blue','sky-lending','maple','uniswap-v3','curve-dex','pendle','raydium-amm',
+  'fluid-lending','convex-finance','fluid-dex','sparklend','yearn-finance','justlend','gmx-v2-perps','aerodrome-slipstream',
+  'uniswap-v2','beefy','compound-v3','inverse-finance-firm','lista-lending','fx-protocol','kamino-liquidity','euler-v2',
+  'kamino-lend','orca-dex','stream-finance','sdai','curve-llamalend','balancer-v3','venus-core-pool','echelon-market',
+  'resupply','stake-dao','tectonic','balancer-v2','arrakis-v1','sparkdex-v3.1','upshift','multipli.fi','stusdt',
+  'cetus-amm','crvusd','vvs-standard','extra-finance-leverage-farming','thalaswap-v2'
+]);
 
 // Initialize Plasma tab when first opened
 function initPlasma() {
@@ -690,6 +964,8 @@ async function loadEcosystemData() {
       ];
     }
     
+    // Remove excluded auto-added yield projects
+    ecosystemData = (ecosystemData || []).filter(p => !PLASMA_EXCLUDE.has(String(p.name || '').toLowerCase()));
     filteredData = [...ecosystemData];
     renderPartners();
     
@@ -810,6 +1086,68 @@ function renderPartners() {
   }).join('');
   
   
+}
+
+function slugifyProjectName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+async function fetchTopStablecoinYieldProjects(limit = 50) {
+  let payload;
+  try {
+    const { data } = await fetchWithCache(EP.POOLS, { ttlSec: 300, version: '1' });
+    payload = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+  } catch {
+    return [];
+  }
+
+  const STABLES = new Set([
+    'USDT','USDC','DAI','TUSD','FDUSD','USDP','FRAX','LUSD','PYUSD','USDD','GUSD',
+    'CRVUSD','SUSD','GHO','MIM','DOLA','USD0','USDM','EUSD','MKUSD','USDC.E','USDBC',
+    'USDE','SUSDE','RLUSD','USDS','USD1'
+  ]);
+  function tokenizeSymbol(sym){
+    return String(sym || '').toUpperCase().split(/[^A-Z0-9]+/g).filter(Boolean);
+  }
+  const rows = payload.filter(p => {
+    const symUp = String(p.symbol || p.pool || '').toUpperCase();
+    const tokens = tokenizeSymbol(symUp);
+    if (tokens.length === 0) return false;
+    const tokenHit = tokens.some(t => STABLES.has(t));
+    const substringHit = Array.from(STABLES).some(s => symUp.includes(s));
+    return tokenHit || substringHit;
+  });
+  const projectToTvl = new Map();
+  for (const r of rows) {
+    const project = r.project || '';
+    if (!project) continue;
+    const tvl = Number(r.tvlUsd ?? r.totalSupplyUsd ?? 0);
+    projectToTvl.set(project, (projectToTvl.get(project) || 0) + tvl);
+  }
+  return Array.from(projectToTvl.entries())
+    .map(([project, tvl]) => ({ project, tvl }))
+    .sort((a,b) => b.tvl - a.tvl)
+    .slice(0, limit);
+}
+
+function augmentEcosystemWithTopYieldProjects(topProjects) {
+  const existing = new Set((ecosystemData || []).map(p => String(p.name || '').toLowerCase()));
+  for (const { project } of topProjects) {
+    const key = String(project || '').toLowerCase();
+    if (!key || existing.has(key)) continue;
+    const slug = slugifyProjectName(project);
+    ecosystemData.push({
+      name: project,
+      logo: `logos/${slug}.svg`,
+      url: 'https://defillama.com/yields/stablecoins',
+      categories: ['yield'],
+      description: `${project} appears among the top projects by stablecoin TVL (auto‑added).`
+    });
+    existing.add(key);
+  }
 }
 
 // Add this new function to create properly encoded fallback SVGs

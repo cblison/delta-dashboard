@@ -78,9 +78,71 @@
 
     <!-- YIELD TAB -->
     <section id="yield" class="tab-content hidden">
-      <div class="card coming-soon">
-        <h2 class="coming-soon-title">Coming Soon</h2>
-        <p class="coming-soon-text">We're still Cooking our dashboard to help you find the best yield for your Stablecoin.</p>
+      <div class="card">
+        <div class="card-title">Stablecoin Yield Scanner</div>
+
+        <div class="row-wrap" style="gap: 12px; margin-bottom: 12px;">
+          <label style="min-width:260px;">
+            <span class="small muted">Search</span><br/>
+            <input id="yfSearch" type="text" placeholder="Search pool, project or asset" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background: rgba(255,255,255,0.04); color:#fff;" />
+          </label>
+
+          <label>
+            <span class="small muted">Asset</span><br/>
+            <select id="yfAsset">
+              <option value="ALL">ALL</option>
+              <option>USDT</option>
+              <option>USDC</option>
+              <option>DAI</option>
+              <option>FDUSD</option>
+              <option>USDP</option>
+              <option>FRAX</option>
+              <option>LUSD</option>
+              <option>PYUSD</option>
+              <option>USDD</option>
+              <option>GUSD</option>
+              <option>TUSD</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="small muted">Chain</span><br/>
+            <select id="yfChain">
+              <option value="ALL">ALL</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="small muted">Project</span><br/>
+            <select id="yfProject">
+              <option value="ALL">ALL</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="small muted">Min TVL (USD)</span><br/>
+            <input id="yfMinTvl" type="number" placeholder="0" min="0" step="10000" />
+          </label>
+
+          <label style="display:flex; align-items:center; gap:8px;">
+            <input id="yfUsdtOnly" type="checkbox" />
+            <span class="small">USDT only</span>
+          </label>
+        </div>
+
+        <div class="table">
+          <div class="trow thead">
+            <div>Pool</div>
+            <div>Project</div>
+            <div>Chain</div>
+            <div>Asset</div>
+            <div id="yfSortApyBase" class="sortable" role="button" tabindex="0">APY (Base)</div>
+            <div id="yfSortApyReward" class="sortable" role="button" tabindex="0">APY (Reward)</div>
+            <div id="yfSortApyTotal" class="sortable" role="button" tabindex="0"><strong>APY (Total)</strong></div>
+            <div id="yfSortTvl" class="sortable" role="button" tabindex="0">TVL</div>
+          </div>
+          <div id="yieldRows"></div>
+        </div>
       </div>
     </section>
 
