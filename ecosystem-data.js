@@ -335,6 +335,104 @@ window.ecosystemPartners = [
         url: "https://pendle.finance/",
         categories: ["yield"],
         description: "Pendle is a leading DeFi protocol from Vietnam, specializing in yield tokenization by separating future yield into Principal Tokens (PT) and Yield Tokens (YT) for flexible yield management"
+    },
+    {
+        name: "Acctual",
+        logo: "logos/Actual.svg",
+        url: "https://acctual.com/",
+        categories: ["payments"],
+        description: "API-driven invoicing and bill-pay platform enabling crypto and fiat payments."
+    },
+    {
+        name: "ARST",
+        logo: "logos/Arst.svg",
+        url: "https://arst.com/",
+        categories: ["payments"],
+        description: "Argentine peso stablecoin, backed 1:1, offering fast, low-cost digital pesos transactions."
+    },
+    {
+        name: "Blindpay",
+        logo: "logos/Blindpay.svg",
+        url: "https://blindpay.com/",
+        categories: ["payments"],
+        description: "Non-custodial stablecoin API for global payouts and remittances."
+    },
+    {
+        name: "El Dorado",
+        logo: "logos/elDorado.svg",
+        url: "https://eldorado.com/",
+        categories: ["payments"],
+        description: "P2P stablecoin super-app for LatAm offering P2P on/offramping."
+    },
+    {
+        name: "Hifi",
+        logo: "logos/Hifi.svg",
+        url: "https://hifi.com/",
+        categories: ["payments"],
+        description: "Global on/off‑ramp API for stablecoin conversion, wallet provisioning, and compliant transfers."
+    },
+    {
+        name: "Indodax",
+        logo: "logos/Indodax.svg",
+        url: "https://indodax.com/",
+        categories: ["payments"],
+        description: "Indonesia's largest regulated crypto exchange."
+    },
+    {
+        name: "Noah",
+        logo: "logos/Noah.svg",
+        url: "https://noah.com/",
+        categories: ["payments"],
+        description: "API-first global payments, enterprise-grade compliance and real-time settlements."
+    },
+    {
+        name: "OpenFX",
+        logo: "logos/OpenFX.svg",
+        url: "https://openfx.com/",
+        categories: ["payments"],
+        description: "Modern FX infrastructure for real-time cross-border payments."
+    },
+    {
+        name: "Shiga",
+        logo: "logos/Shiga.svg",
+        url: "https://shiga.com/",
+        categories: ["payments"],
+        description: "Regulated stablecoin wallet with fiat ramps and multichain swaps for African businesses."
+    },
+    {
+        name: "Sphere",
+        logo: "logos/Sphere.svg",
+        url: "https://sphere.com/",
+        categories: ["payments"],
+        description: "API for stablecoin payments, fiat ramps, and cross-border transfers."
+    },
+    {
+        name: "Stables",
+        logo: "logos/StablesMoney.svg",
+        url: "https://stables.com/",
+        categories: ["payments"],
+        description: "Wallet and card platform for spending, sending, and ramping stablecoins globally."
+    },
+    {
+        name: "WalaPay",
+        logo: "logos/Walapay.svg",
+        url: "https://walapay.com/",
+        categories: ["payments"],
+        description: "Payout and virtual account API for global fiat and stablecoin disbursements with built-in compliance."
+    },
+    {
+        name: "XFX",
+        logo: "logos/XFX.svg",
+        url: "https://xfx.com/",
+        categories: ["payments"],
+        description: "Stablecoin and fiat settlement API for cross-border payments and FX execution."
+    },
+    {
+        name: "Yasmin",
+        logo: "logos/Yasmin.svg",
+        url: "https://yasmin.com/",
+        categories: ["payments"],
+        description: "A native on-chain bank and financial venue for Greater Syria Arabic Region."
     }
 ];
 
