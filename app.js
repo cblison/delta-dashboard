@@ -913,7 +913,7 @@ let currentSearch = '';
 
 // Exclude these auto-added yield projects from Plasma ecosystem
 const PLASMA_EXCLUDE = new Set([
-  'aave-v3','ethena-usde','merkl','morpho-blue','sky-lending','maple','uniswap-v3','curve-dex','pendle','raydium-amm',
+  'aave-v3','ethena-usde','merkl','morpho-blue','sky-lending','maple','uniswap-v3','curve-dex','raydium-amm',
   'fluid-lending','convex-finance','fluid-dex','sparklend','yearn-finance','justlend','gmx-v2-perps','aerodrome-slipstream',
   'uniswap-v2','beefy','compound-v3','inverse-finance-firm','lista-lending','fx-protocol','kamino-liquidity','euler-v2',
   'kamino-lend','orca-dex','stream-finance','sdai','curve-llamalend','balancer-v3','venus-core-pool','echelon-market',
@@ -967,6 +967,11 @@ async function loadEcosystemData() {
     // Remove excluded auto-added yield projects
     ecosystemData = (ecosystemData || []).filter(p => !PLASMA_EXCLUDE.has(String(p.name || '').toLowerCase()));
     filteredData = [...ecosystemData];
+    // Update dynamic partner count
+    const countEl = document.getElementById('plasmaPartnerCount');
+    if (countEl) {
+      countEl.textContent = String(ecosystemData.length);
+    }
     renderPartners();
     
   } catch (error) {

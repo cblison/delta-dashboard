@@ -321,6 +321,20 @@ window.ecosystemPartners = [
         url: "https://www.gas.zip/",
         categories: ["bridge"],
         description: "Gas.zip is a cross-chain gas refueling bridge that lets users seamlessly send native gas tokens to 350+ blockchains in one simple transaction, built on LayerZero."
+    },
+    {
+        name: "Aave",
+        logo: "logos/aave.svg",
+        url: "https://aave.com/",
+        categories: ["yield"],
+        description: "Aave is a decentralised non-custodial liquidity protocol where users can participate as suppliers or borrowers. Suppliers provide liquidity to the market while earning interest, and borrowers can access liquidity by providing collateral that exceeds the borrowed amount."
+    },
+    {
+        name: "Pendle",
+        logo: "logos/pendle.svg",
+        url: "https://pendle.finance/",
+        categories: ["yield"],
+        description: "Pendle is a leading DeFi protocol from Vietnam, specializing in yield tokenization by separating future yield into Principal Tokens (PT) and Yield Tokens (YT) for flexible yield management"
     }
 ];
 
