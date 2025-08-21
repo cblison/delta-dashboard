@@ -22,7 +22,7 @@
     <div class="brand">Stablecoin Dashboard</div>
     <nav class="tabs" id="tabs">
       <button class="tab active" data-target="overview">Overview</button>
-      <button class="tab" data-target="yield">Yield</button>
+      <button class="tab" data-target="historical">Historical data</button>
       <button class="tab" data-target="plasma">Plasma Ecosystem</button>
     </nav>
   </header>
@@ -76,73 +76,66 @@
       </div>
     </section>
 
-    <!-- YIELD TAB -->
-    <section id="yield" class="tab-content hidden">
-      <div class="card">
-        <div class="card-title">Stablecoin Yield Scanner</div>
-
-        <div class="row-wrap" style="gap: 12px; margin-bottom: 12px;">
-          <label style="min-width:260px;">
-            <span class="small muted">Search</span><br/>
-            <input id="yfSearch" type="text" placeholder="Search pool, project or asset" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background: rgba(255,255,255,0.04); color:#fff;" />
-          </label>
-
-          <label>
-            <span class="small muted">Asset</span><br/>
-            <select id="yfAsset">
-              <option value="ALL">ALL</option>
-              <option>USDT</option>
-              <option>USDC</option>
-              <option>DAI</option>
-              <option>FDUSD</option>
-              <option>USDP</option>
-              <option>FRAX</option>
-              <option>LUSD</option>
-              <option>PYUSD</option>
-              <option>USDD</option>
-              <option>GUSD</option>
-              <option>TUSD</option>
-            </select>
-          </label>
-
-          <label>
-            <span class="small muted">Chain</span><br/>
-            <select id="yfChain">
-              <option value="ALL">ALL</option>
-            </select>
-          </label>
-
-          <label>
-            <span class="small muted">Project</span><br/>
-            <select id="yfProject">
-              <option value="ALL">ALL</option>
-            </select>
-          </label>
-
-          <label>
-            <span class="small muted">Min TVL (USD)</span><br/>
-            <input id="yfMinTvl" type="number" placeholder="0" min="0" step="10000" />
-          </label>
-
-          <label style="display:flex; align-items:center; gap:8px;">
-            <input id="yfUsdtOnly" type="checkbox" />
-            <span class="small">USDT only</span>
-          </label>
-        </div>
-
-        <div class="table">
-          <div class="trow thead">
-            <div>Pool</div>
-            <div>Project</div>
-            <div id="yfSortTvl" class="sortable" role="button" tabindex="0">TVL</div>
-            <div>Chain</div>
-            <div>Asset</div>
-            <div id="yfSortApyBase" class="sortable" role="button" tabindex="0">APY (Base)</div>
-            <div id="yfSortApyReward" class="sortable" role="button" tabindex="0">APY (Reward)</div>
-            <div id="yfSortApyTotal" class="sortable" role="button" tabindex="0"><strong>APY (Total)</strong></div>
+    <!-- HISTORICAL TAB -->
+    <section id="historical" class="tab-content hidden">
+      <div class="hist-layout">
+        <aside class="hist-sidebar">
+          <h2 class="hist-title">Stablecoins</h2>
+          <p class="hist-desc">Search and select any stablecoin to view historical market cap and chain distribution.</p>
+          <div class="hist-search">
+            <input id="histSearch" placeholder="Search by name or symbol…" />
           </div>
-          <div id="yieldRows"></div>
-        </div>
+          <div id="histAssetList" class="hist-list" aria-live="polite"></div>
+        </aside>
+        <main class="hist-content">
+          <div class="hist-mobile-picker">
+            <span class="hist-label">Select Stablecoin</span>
+            <select id="histMobileSelect"></select>
+          </div>
+          <div id="histCurrentHeader">
+            <div class="hist-header">
+              <h2 id="histAssetName" class="hist-title" style="margin:0;">Select a stablecoin</h2>
+              <span id="histAssetSymbol" class="hist-symbol"></span>
+            </div>
+            <div id="histAssetDesc" class="hist-subheader"></div>
+          </div>
+
+          <div class="hist-cards">
+            <div class="hist-card">
+              <div class="hist-card-label">Current Circulating (USD)</div>
+              <div class="hist-card-value" id="histCurrentCirc">—</div>
+            </div>
+            <div class="hist-card">
+              <div class="hist-card-label">Chains</div>
+              <div class="hist-card-value" id="histChainCount">—</div>
+            </div>
+          </div>
+
+          <div class="hist-chart">
+            <div class="hist-chart-head">
+              <h3 class="hist-chart-title">Historical Market Cap</h3>
+              <div class="hist-chart-actions">
+                <small class="hist-footnote">Summed from chain-level circulating values</small>
+                <a id="histMarketCapLink" class="hist-footnote" href="#" target="_blank" rel="noopener noreferrer">Open data →</a>
+              </div>
+            </div>
+            <div class="hist-chart-frame">
+              <canvas id="histMarketCapChart" class="hist-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <div class="hist-chart">
+            <div class="hist-chart-head">
+              <h3 class="hist-chart-title">Historical Chain Distribution</h3>
+              <small class="hist-footnote">Top chains stacked; others grouped</small>
+            </div>
+            <div class="hist-chart-frame">
+              <canvas id="histStackedChart" class="hist-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <div id="histStatus" class="hist-footnote"></div>
+        </main>
       </div>
     </section>
 
