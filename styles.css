@@ -664,3 +664,145 @@ main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
     padding: 14px;
   }
 }
+
+/* Mobile styles for stablecoin table - hide Top Chains column */
+@media (max-width: 768px) {
+  .table-list .row {
+    grid-template-columns: 1.5fr 1fr;
+  }
+  
+  .table-list .row div:nth-child(3) {
+    display: none;
+  }
+  
+  .table-list .row div:nth-child(2) {
+    justify-content: flex-end;
+  }
+  
+  /* KPI cards stack vertically on mobile */
+  .kpis {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .kpi .kpi-value {
+    font-size: 20px;
+  }
+  
+  /* Charts stack vertically on mobile */
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  /* Yield page mobile styles */
+  .row-wrap {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .row-wrap label {
+    min-width: auto !important;
+    width: 100%;
+  }
+  
+  .row-wrap input,
+  .row-wrap select {
+    width: 100%;
+    padding: 8px 10px;
+  }
+  
+  /* Yield table mobile - horizontal scroll with fixed left columns */
+  .table {
+    overflow-x: auto;
+    position: relative;
+  }
+  
+  .table .trow {
+    display: flex;
+    min-width: 600px;
+    font-size: 12px;
+  }
+  
+  .table .thead {
+    display: flex;
+    min-width: 600px;
+    font-size: 12px;
+  }
+  
+  .table .trow div,
+  .table .thead div {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  /* Fixed left column (Pool only) */
+  .table .trow div:nth-child(1),
+  .table .thead div:nth-child(1) {
+    position: sticky;
+    left: 0;
+    background: var(--bg);
+    z-index: 2;
+    width: 120px;
+    text-align: left;
+    border-right: 2px solid rgba(74, 222, 128, 0.3);
+  }
+  
+  /* Scrollable columns (TVL + others) */
+  .table .trow div:nth-child(2),
+  .table .thead div:nth-child(2) {
+    width: 80px;
+    text-align: right;
+  }
+  
+  .table .trow div:nth-child(3),
+  .table .thead div:nth-child(3) {
+    width: 100px;
+    text-align: left;
+  }
+  
+  .table .trow div:nth-child(6),
+  .table .thead div:nth-child(6) {
+    width: 80px;
+    text-align: center;
+  }
+  
+  .table .trow div:nth-child(7),
+  .table .thead div:nth-child(7) {
+    width: 80px;
+    text-align: center;
+  }
+  
+  .table .trow div:nth-child(8),
+  .table .thead div:nth-child(8) {
+    width: 80px;
+    text-align: center;
+  }
+  
+  /* Hide Chain and Asset columns on mobile */
+  .table .trow div:nth-child(4),
+  .table .trow div:nth-child(5),
+  .table .thead div:nth-child(4),
+  .table .thead div:nth-child(5) {
+    display: none;
+  }
+  
+  /* Add scroll indicator */
+  .table::after {
+    content: '→';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(74, 222, 128, 0.6);
+    font-size: 16px;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+}

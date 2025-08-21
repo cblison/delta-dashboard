@@ -220,6 +220,51 @@ function renderDonut(list) {
     window.donutChart.destroy();
   }
   
+  // Brand colors for stablecoins
+  const brandColors = {
+    'USDT': '#26A17B', // Tether green
+    'USDC': '#2775CA', // USDC blue
+    'DAI': '#F5AC37', // DAI orange
+    'FDUSD': '#2775CA', // FDUSD blue (similar to USDC)
+    'USDP': '#2775CA', // USDP blue
+    'FRAX': '#000000', // FRAX black
+    'LUSD': '#5BBDF9', // LUSD light blue
+    'PYUSD': '#FFD700', // PayPal gold
+    'USDD': '#2775CA', // USDD blue
+    'GUSD': '#2775CA', // GUSD blue
+    'TUSD': '#2775CA', // TUSD blue
+    'BUSD': '#F0B90B', // BUSD yellow
+    'USDK': '#2775CA', // USDK blue
+    'USDN': '#2775CA', // USDN blue
+    'USDJ': '#2775CA', // USDJ blue
+    'USDT0': '#26A17B', // USDT0 green (same as USDT)
+    'USDE': '#8B4513', // USDE brown
+    'USDe': '#000000', // USDe black (Ethena's USDe)
+    'SUSDE': '#2775CA', // SUSDE blue
+    'RLUSD': '#2775CA', // RLUSD blue
+    'USDS': '#FF6B35', // USDS orange
+    'USD1': '#2775CA', // USD1 blue
+    'USD0': '#2775CA', // USD0 blue
+    'USD.AI': '#2775CA', // USD.AI blue
+    'USD₮0': '#26A17B', // USD₮0 green (same as USDT)
+    'NUSD': '#2775CA', // NUSD blue
+    'USD0': '#2775CA', // USD0 blue
+    'lvlUSD': '#2775CA', // lvlUSD blue
+    'XAUt': '#FFD700', // Tether Gold gold
+    'TRYB': '#E30A17', // Turkish Lira red
+    'CRVUSD': '#2775CA', // CRVUSD blue
+    'SUSD': '#2775CA', // SUSD blue
+    'GHO': '#2775CA', // GHO blue
+    'MIM': '#2775CA', // MIM blue
+    'DOLA': '#2775CA', // DOLA blue
+    'USDM': '#2775CA', // USDM blue
+    'EUSD': '#2775CA', // EUSD blue
+    'MKUSD': '#2775CA', // MKUSD blue
+    'USDC.E': '#2775CA', // USDC.E blue
+    'USDBC': '#2775CA', // USDBC blue
+    'Others': '#6B7280' // Gray for Others
+  };
+  
   const canvas = document.getElementById('chartDonut').getContext('2d');
   const rows = list.map(c => ({
     label: c.symbol || c.name || '—',
@@ -234,15 +279,30 @@ function renderDonut(list) {
   const others = rows.slice(5).reduce((s,r)=>s+r.mcap,0);
   const labels = [...top5.map(r=>r.label), 'Others'];
   const data = [...top5.map(r=>r.mcap), others];
+  
+  // Generate colors based on labels
+  const backgroundColor = labels.map(label => {
+    console.log('Label:', label, 'Color:', brandColors[label] || '#6B7280');
+    return brandColors[label] || '#6B7280';
+  });
 
   // Store chart instance globally to prevent multiple instances
   window.donutChart = new Chart(canvas, {
     type: 'doughnut',
-    data: { labels, datasets: [{ data }]},
+    data: { 
+      labels, 
+      datasets: [{ 
+        data,
+        backgroundColor,
+        borderColor: backgroundColor,
+        borderWidth: 2
+      }]
+    },
     options: {
       plugins: { legend: { labels: { color: '#fff' }, position: 'bottom' } }, responsive: true, maintainAspectRatio: true, aspectRatio: 1, cutout: '60%',
       layout: { padding: 8 },
-      animation: { duration: 0 }
+      animation: { duration: 0 },
+      cache: false
     }
   });
 }
@@ -873,13 +933,13 @@ async function initYield() {
       const projectLink = getProjectWebsite(r.project);
       row.innerHTML = `
         <div>${projectLink ? `<a href="${projectLink}" target="_blank" rel="noopener noreferrer"><strong>${symbolText}</strong></a>` : `<strong>${symbolText}</strong>`}<span class="muted small">${metaText}</span></div>
+        <div>${formatUSD(tvl)}</div>
         <div>${formatProjectName(r.project) || '—'}</div>
         <div>${r.chain || '—'}</div>
         <div>${r.symbol || '—'}</div>
         <div>${fmtPct(apyBase)}</div>
         <div>${fmtPct(apyReward)}</div>
         <div><strong>${fmtPct(apyTotal)}</strong></div>
-        <div>${formatUSD(tvl)}</div>
       `;
       tbody.appendChild(row);
     });
