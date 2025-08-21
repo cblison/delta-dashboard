@@ -749,17 +749,17 @@ main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
     border-right: 2px solid rgba(74, 222, 128, 0.3);
   }
   
-  /* Scrollable columns (TVL + others) */
+  /* Scrollable columns (Project + others) */
   .table .trow div:nth-child(2),
   .table .thead div:nth-child(2) {
-    width: 80px;
-    text-align: right;
+    width: 100px;
+    text-align: left;
   }
   
   .table .trow div:nth-child(3),
   .table .thead div:nth-child(3) {
-    width: 100px;
-    text-align: left;
+    width: 80px;
+    text-align: right;
   }
   
   .table .trow div:nth-child(6),

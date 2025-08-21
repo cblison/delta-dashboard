@@ -933,8 +933,8 @@ async function initYield() {
       const projectLink = getProjectWebsite(r.project);
       row.innerHTML = `
         <div>${projectLink ? `<a href="${projectLink}" target="_blank" rel="noopener noreferrer"><strong>${symbolText}</strong></a>` : `<strong>${symbolText}</strong>`}<span class="muted small">${metaText}</span></div>
-        <div>${formatUSD(tvl)}</div>
         <div>${formatProjectName(r.project) || '—'}</div>
+        <div>${formatUSD(tvl)}</div>
         <div>${r.chain || '—'}</div>
         <div>${r.symbol || '—'}</div>
         <div>${fmtPct(apyBase)}</div>
