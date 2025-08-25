@@ -1228,8 +1228,18 @@ async function initHistorical() {
     HIST_filteredAssets = HIST_allAssets;
     histRenderAssetList();
     histSetStatus('');
-    // Don't auto-select first asset - let user choose
-    // if (HIST_allAssets.length) histSelectAsset(HIST_allAssets[0]);
+    // Auto-select USDT (Tether) by default
+    const usdtAsset = HIST_allAssets.find(asset => 
+      asset.symbol === 'USDT' || 
+      asset.name.toLowerCase().includes('tether') ||
+      asset.name.toLowerCase().includes('usdt')
+    );
+    if (usdtAsset) {
+      histSelectAsset(usdtAsset);
+    } else if (HIST_allAssets.length) {
+      // Fallback to first asset if USDT not found
+      histSelectAsset(HIST_allAssets[0]);
+    }
   } catch (e) {
     console.error(e);
     histSetStatus('Failed to load stablecoin list. ' + e.message, 'error');
