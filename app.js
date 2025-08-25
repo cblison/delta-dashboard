@@ -298,10 +298,47 @@ function renderDonut(list) {
       }]
     },
     options: {
-      plugins: { legend: { labels: { color: '#fff' }, position: 'bottom' } }, responsive: true, maintainAspectRatio: true, aspectRatio: 1, cutout: '60%',
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 1,
+      cutout: '60%',
       layout: { padding: 8 },
       animation: { duration: 0 },
-      cache: false
+      cache: false,
+      elements: {
+        arc: {
+          borderWidth: 2,
+          borderColor: '#1a1a1a'
+        }
+      },
+      plugins: { 
+        legend: { 
+          labels: { color: '#fff' }, 
+          position: 'bottom' 
+        },
+        tooltip: {
+          enabled: true,
+          mode: 'nearest',
+          intersect: true,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((value / total) * 100).toFixed(1);
+              return `${label}: ${formatUSD(value)} (${percentage}%)`;
+            }
+          }
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        intersect: true,
+        axis: 'xy'
+      },
+      onHover: (event, activeElements) => {
+        event.native.target.style.cursor = activeElements.length ? 'pointer' : 'default';
+      }
     }
   });
 }
