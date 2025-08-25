@@ -1228,7 +1228,8 @@ async function initHistorical() {
     HIST_filteredAssets = HIST_allAssets;
     histRenderAssetList();
     histSetStatus('');
-    if (HIST_allAssets.length) histSelectAsset(HIST_allAssets[0]);
+    // Don't auto-select first asset - let user choose
+    // if (HIST_allAssets.length) histSelectAsset(HIST_allAssets[0]);
   } catch (e) {
     console.error(e);
     histSetStatus('Failed to load stablecoin list. ' + e.message, 'error');
@@ -1241,25 +1242,16 @@ async function histSelectAsset(asset) {
     histSetStatus(`Loading ${asset.name}…`);
     const nameEl = document.getElementById('histAssetName');
     const symEl = document.getElementById('histAssetSymbol');
-    const descEl = document.getElementById('histAssetDesc');
     const circEl = document.getElementById('histCurrentCirc');
     const chainCountEl = document.getElementById('histChainCount');
-    const linkEl = document.getElementById('histMarketCapLink');
     if (nameEl) nameEl.textContent = asset.name;
     if (symEl) symEl.textContent = asset.symbol ? `(${asset.symbol})` : '';
-    if (descEl) descEl.textContent = '';
-    const symOrId = encodeURIComponent(asset.symbol || asset.id || '');
-    if (linkEl && symOrId) {
-      linkEl.href = `https://stablecoins.llama.fi/stablecoincharts/${symOrId}`;
-      linkEl.title = `Open raw data for ${asset.symbol || asset.name}`;
-    }
     const data = await histFetchJSON(HIST_API_ASSET(asset.id));
 
     const currentCircUsd = asset.circulating?.peggedUSD ?? null;
     if (circEl) circEl.textContent = histFormatUSD(currentCircUsd);
     const chainCount = Object.keys(data.chainBalances || {}).length;
     if (chainCountEl) chainCountEl.textContent = String(chainCount);
-    if (data.description && descEl) descEl.textContent = data.description;
 
     const { allDates, chainToUnified } = histBuildTimeIndex(data.chainBalances || {});
     if (!allDates.length) {
